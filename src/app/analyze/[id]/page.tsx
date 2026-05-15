@@ -6,23 +6,20 @@ import { MathMadeSimple } from "@/components/result/MathMadeSimple";
 import { MindMap, MindMapData } from "@/components/result/MindMap";
 import { RelatedTopics } from "@/components/result/RelatedTopics";
 import { ResultSummaryCard } from "@/components/result/ResultSummaryCard";
-import DarkModeToggle from "@/components/shared/DarkModeToggle";
-import { Card } from "@/components/ui/shared/Card";
-
+import { Button } from "@/components/ui/shared/Button";
+import { GlassCard } from "@/components/ui/shared/GlassCard";
+import { ResultPageSkeleton } from "@/components/ui/shared/LoadingSkeleton";
+import { AlertCircle, ArrowLeft, RefreshCw, Sparkles } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import dynamic from "next/dynamic";
 
 const PdfPreview = dynamic(
-  () =>
-    import("@/components/result/PdfPreview").then(
-      (mod) => mod.PdfPreview
-    ),
-  {
-    ssr: false,
-  }
+  () => import("@/components/result/PdfPreview").then((m) => m.PdfPreview),
+  { ssr: false }
 );
 
+/* ── Types ─────────────────────────────────────────────────────────── */
 type PaperStatus = "processing" | "completed" | "failed";
 
 type GeminiResult = {
@@ -38,20 +35,12 @@ type GeminiResult = {
   math: {
     equation: string;
     meaning: string;
-    symbols: Array<{
-      symbol: string;
-      meaning: string;
-    }>;
+    symbols: Array<{ symbol: string; meaning: string }>;
     steps: string[];
     simpleExplanation: string;
   };
   mindmap: MindMapData;
-
-  learningCards: Array<{
-    question: string;
-    answer: string;
-  }>;
-
+  learningCards: Array<{ question: string; answer: string }>;
   relatedTopics: string[];
 };
 
@@ -70,240 +59,116 @@ type ApiPaperResponse = {
 
 function emptyResult(): GeminiResult {
   return {
-    summary: {
-      title: "",
-      category: "",
-      difficulty: "",
-      oneLineSummary: "",
-      problemSolved: "",
-      methodUsed: "",
-    },
-
+    summary: { title: "", category: "", difficulty: "", oneLineSummary: "", problemSolved: "", methodUsed: "" },
     concepts: [],
-
-    math: {
-      equation: "",
-      meaning: "",
-      symbols: [],
-      steps: [],
-      simpleExplanation: "",
-    },
-
-    mindmap: {
-      nodes: [],
-      edges: [],
-    },
-
+    math: { equation: "", meaning: "", symbols: [], steps: [], simpleExplanation: "" },
+    mindmap: { nodes: [], edges: [] },
     learningCards: [],
-
     relatedTopics: [],
   };
 }
 
+/* ── Page ───────────────────────────────────────────────────────────── */
 export default function AnalyzeResultPage() {
   const params = useParams<{ id: string }>();
-
   const router = useRouter();
-
-  const id = params.id;
+  const id     = params.id;
 
   const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState<string | null>(null);
+  const [data, setData]       = useState<ApiPaperResponse | null>(null);
 
-  const [error, setError] = useState<string | null>(null);
+  const result = useMemo(() => data?.result ?? emptyResult(), [data]);
 
-  const [data, setData] = useState<ApiPaperResponse | null>(null);
-
-  const result = useMemo((): GeminiResult => {
-    return data?.result ?? emptyResult();
-  }, [data]);
-
-  /**
-   * Fetch paper result
-   */
   const load = useCallback(async () => {
     if (!id) return;
-
     setLoading(true);
-
     setError(null);
-
     try {
-      const res = await fetch(`/api/paper/${id}`);
-
+      const res  = await fetch(`/api/paper/${id}`);
       const json: ApiPaperResponse = await res.json();
-
-      if (!res.ok) {
-        throw new Error(json.error ?? "Failed to load result");
-      }
-
+      if (!res.ok) throw new Error(json.error ?? "Failed to load result");
       setData(json);
     } catch (e) {
-      setError(
-        e instanceof Error
-          ? e.message
-          : "Failed to load result"
-      );
+      setError(e instanceof Error ? e.message : "Failed to load result");
     } finally {
       setLoading(false);
     }
   }, [id]);
 
-  /**
-   * Load on page mount / id change
-   */
   useEffect(() => {
-  let mounted = true;
-
-  const fetchData = async () => {
-    if (!mounted) return;
-
-    try {
-      await load();
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  void fetchData();
-
-  return () => {
-    mounted = false;
-  };
-}, [load]);
-
-  const summary = result.summary;
-
-  const concepts = result.concepts;
-
-  const math = result.math;
-
-  const mindmap = result.mindmap;
-
-  const relatedTopics = result.relatedTopics;
+    let mounted = true;
+    const run = async () => { if (mounted) await load(); };
+    void run();
+    return () => { mounted = false; };
+  }, [load]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="min-h-screen bg-[#080b14] text-slate-100">
 
-        {/* Navbar */}
-        <div className="mb-8 flex items-center justify-between">
-
+      {/* ── Sticky navbar ─────────────────────────────────────────── */}
+      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#080b14]/90 backdrop-blur-xl">
+        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
           <button
             type="button"
             onClick={() => router.push("/")}
-            className="rounded-xl bg-white/5 px-3 py-2 text-xs text-slate-200 ring-1 ring-white/10 hover:bg-white/10 transition"
+            className="group flex items-center gap-2 text-sm text-slate-400 transition-colors duration-200 hover:text-white"
+            aria-label="Back to home"
           >
-            ← Back
+            <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
+            Back
           </button>
 
-          <div className="flex items-center gap-3">
-
-            <div className="hidden sm:block">
-              <div className="text-sm font-medium">
-                PaperLens AI
-              </div>
-
-              <div className="text-xs text-slate-400">
-                Visual research understanding
-              </div>
+          <div className="flex items-center gap-2">
+            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-indigo-500 to-purple-600">
+              <Sparkles className="h-3 w-3 text-white" />
             </div>
-
-            <DarkModeToggle />
+            <span className="text-sm font-semibold text-slate-200">
+              PaperLens <span className="text-indigo-400">AI</span>
+            </span>
           </div>
         </div>
+      </header>
 
-        {/* Loading State */}
+      {/* ── Content ───────────────────────────────────────────────── */}
+      <main className="mx-auto max-w-5xl px-6 py-10">
         {loading ? (
-          <div className="space-y-4">
-
-            <Card className="p-6 bg-white/5 ring-1 ring-white/10">
-              Loading result…
-            </Card>
-
-            <Card className="p-6 bg-white/5 ring-1 ring-white/10">
-              Preparing sections A–G…
-            </Card>
-
-          </div>
-
+          <ResultPageSkeleton />
         ) : error ? (
-
-          /* Error State */
-          <Card className="p-6 bg-red-500/10 ring-1 ring-red-500/20">
-
-            <div className="text-sm font-medium">
-              {error}
+          <GlassCard gradient className="p-8 text-center animate-fade-in">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/15 ring-1 ring-red-500/20">
+              <AlertCircle className="h-6 w-6 text-red-400" />
             </div>
-
-            <div className="mt-4 flex gap-3">
-
-              <button
-                type="button"
-                onClick={() => void load()}
-                className="rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/10 ring-1 ring-white/10 hover:brightness-105"
-              >
-                Retry
-              </button>
-
-            </div>
-          </Card>
-
+            <h2 className="text-base font-semibold text-slate-100">Failed to load result</h2>
+            <p className="mt-2 text-sm text-slate-500">{error}</p>
+            <Button
+              className="mt-6"
+              onClick={() => void load()}
+              aria-label="Retry loading result"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Retry
+            </Button>
+          </GlassCard>
         ) : (
-
-          /* Success State */
-          <div className="space-y-6">
-
-            <ResultSummaryCard summary={summary} />
-
-            <KeyConcepts concepts={concepts} />
-
-            <MathMadeSimple data={math} />
-
+          <div className="space-y-5">
+            <ResultSummaryCard summary={result.summary} />
+            <KeyConcepts concepts={result.concepts} />
+            <MathMadeSimple data={result.math} />
             <PdfPreview
               pdfUrl={data?.pdfUrl ?? null}
               sourceUrl={data?.sourceUrl ?? null}
             />
+            <MindMap data={result.mindmap} />
+            <LearningCards summary={result.summary} concepts={result.concepts} />
+            <RelatedTopics relatedTopics={result.relatedTopics} />
 
-            {/* Mind Map */}
-            <div className="rounded-2xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-transparent p-[1px]">
-
-              <div className="rounded-2xl bg-slate-950/40">
-
-                <div className="px-6 py-5">
-
-                  <div className="text-sm font-medium text-indigo-100">
-                    Mind map
-                  </div>
-
-                  <div className="mt-1 text-xs text-slate-400">
-                    Memory-friendly node graph of concepts.
-                  </div>
-
-                </div>
-
-                <div className="px-6 pb-6">
-                  <MindMap data={mindmap} />
-                </div>
-
-              </div>
-            </div>
-
-            <LearningCards
-              summary={summary}
-              concepts={concepts}
-            />
-
-            <RelatedTopics relatedTopics={relatedTopics} />
-
-            <div className="py-10">
-              <div className="text-center text-xs text-slate-400">
-                Generated by Gemini. Rendered from structured JSON.
-              </div>
-            </div>
-
+            <footer className="py-8 text-center text-xs text-slate-700">
+              Generated by Llama 3.3 · 70B via Groq · Rendered from structured JSON
+            </footer>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

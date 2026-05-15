@@ -1,6 +1,7 @@
 "use client";
 
-import { Card } from "@/components/ui/shared/Card";
+import { GlassCard } from "@/components/ui/shared/GlassCard";
+import { SectionHeader } from "@/components/ui/shared/SectionHeader";
 import { Sigma } from "lucide-react";
 
 export type MathData = {
@@ -15,64 +16,90 @@ export function MathMadeSimple({ data }: { data: MathData }) {
   const hasEquation = !!data?.equation?.trim();
 
   return (
-    <Card className="bg-white/5 p-6 ring-1 ring-white/10">
-      <div className="flex items-center gap-2 text-sm font-medium text-indigo-100">
-        <Sigma className="h-4 w-4 text-indigo-200" />
-        Math made simple
-      </div>
+    <GlassCard className="p-6 animate-fade-up">
+      <SectionHeader
+        icon={<Sigma className="h-4 w-4" />}
+        title="Math Made Simple"
+        description="Key equations broken down into plain language."
+      />
 
-      <div className="mt-4">
-        {!hasEquation ? (
-          <div className="rounded-xl bg-slate-950/50 p-4 ring-1 ring-white/10 text-sm text-slate-300">
-            No major mathematical equation found in this paper.
+      {!hasEquation ? (
+        <div className="rounded-xl bg-white/[0.03] px-4 py-3 text-sm text-slate-500 ring-1 ring-white/[0.06]">
+          No major mathematical equations found in this paper.
+        </div>
+      ) : (
+        <div className="space-y-3">
+
+          {/* Equation block */}
+          <div className="rounded-xl bg-[#0d1117] p-4 ring-1 ring-white/[0.08]">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-slate-600">
+              Equation
+            </p>
+            <code className="font-mono text-base text-indigo-300 leading-relaxed">
+              {data.equation}
+            </code>
           </div>
-        ) : (
-          <div className="grid gap-4">
-            <div className="rounded-xl bg-slate-950/50 p-4 ring-1 ring-white/10">
-              <div className="text-xs text-slate-400">Equation</div>
-              <div className="mt-2 font-mono text-sm text-slate-100">{data.equation}</div>
-            </div>
 
-            <div className="rounded-xl bg-slate-950/50 p-4 ring-1 ring-white/10">
-              <div className="text-xs text-slate-400">Meaning</div>
-              <div className="mt-2 text-sm text-slate-200">{data.meaning}</div>
-            </div>
-
-            {data.symbols?.length ? (
-              <div className="rounded-xl bg-slate-950/50 p-4 ring-1 ring-white/10">
-                <div className="text-xs text-slate-400">Symbols</div>
-                <div className="mt-2 grid gap-2">
-                  {data.symbols.map((s, i) => (
-                    <div key={i} className="flex items-start gap-3 rounded-lg bg-white/5 p-3 ring-1 ring-white/10">
-                      <div className="font-mono text-sm text-indigo-100">{s.symbol}</div>
-                      <div className="text-sm text-slate-300">{s.meaning}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
-            {data.steps?.length ? (
-              <div className="rounded-xl bg-slate-950/50 p-4 ring-1 ring-white/10">
-                <div className="text-xs text-slate-400">Step-by-step breakdown</div>
-                <div className="mt-2 grid gap-2">
-                  {data.steps.map((st, i) => (
-                    <div key={i} className="rounded-lg bg-white/5 p-3 ring-1 ring-white/10 text-sm text-slate-300">
-                      <span className="font-medium text-indigo-100">Step {i + 1}:</span> {st}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
-            <div className="rounded-xl bg-slate-950/50 p-4 ring-1 ring-white/10">
-              <div className="text-xs text-slate-400">Simple explanation</div>
-              <div className="mt-2 text-sm text-slate-200">{data.simpleExplanation}</div>
-            </div>
+          {/* Meaning */}
+          <div className="rounded-xl bg-white/[0.03] p-4 ring-1 ring-white/[0.06]">
+            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-widest text-slate-600">
+              Meaning
+            </p>
+            <p className="text-sm text-slate-300 leading-relaxed">{data.meaning}</p>
           </div>
-        )}
-      </div>
-    </Card>
+
+          {/* Symbols table */}
+          {data.symbols?.length ? (
+            <div className="rounded-xl bg-white/[0.03] p-4 ring-1 ring-white/[0.06]">
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-slate-600">
+                Symbol Reference
+              </p>
+              <div className="space-y-2">
+                {data.symbols.map((s, i) => (
+                  <div
+                    key={i}
+                    className="flex items-start gap-4 rounded-lg bg-white/[0.03] px-3 py-2.5 ring-1 ring-white/[0.05]"
+                  >
+                    <code className="w-16 shrink-0 font-mono text-sm font-semibold text-indigo-300">
+                      {s.symbol}
+                    </code>
+                    <span className="text-sm text-slate-400 leading-relaxed">{s.meaning}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Steps */}
+          {data.steps?.length ? (
+            <div className="rounded-xl bg-white/[0.03] p-4 ring-1 ring-white/[0.06]">
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-slate-600">
+                Step-by-Step
+              </p>
+              <div className="space-y-2">
+                {data.steps.map((st, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-500/20 text-[10px] font-bold text-indigo-400 ring-1 ring-indigo-500/20 mt-0.5">
+                      {i + 1}
+                    </span>
+                    <p className="text-sm text-slate-300 leading-relaxed">{st}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Simple explanation */}
+          {data.simpleExplanation && (
+            <div className="rounded-xl bg-indigo-500/8 p-4 ring-1 ring-indigo-500/15">
+              <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-widest text-indigo-500">
+                In Plain English
+              </p>
+              <p className="text-sm text-slate-300 leading-relaxed">{data.simpleExplanation}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </GlassCard>
   );
 }
-

@@ -1,26 +1,44 @@
 "use client";
 
-import { Card } from "@/components/ui/shared/Card";
+import { GlassCard } from "@/components/ui/shared/GlassCard";
+import { SectionHeader } from "@/components/ui/shared/SectionHeader";
+import { Tag } from "lucide-react";
+
+const PILL_COLORS = [
+  "bg-indigo-500/15 text-indigo-300 ring-indigo-500/20 hover:bg-indigo-500/25",
+  "bg-purple-500/15 text-purple-300 ring-purple-500/20 hover:bg-purple-500/25",
+  "bg-sky-500/15 text-sky-300 ring-sky-500/20 hover:bg-sky-500/25",
+  "bg-violet-500/15 text-violet-300 ring-violet-500/20 hover:bg-violet-500/25",
+  "bg-fuchsia-500/15 text-fuchsia-300 ring-fuchsia-500/20 hover:bg-fuchsia-500/25",
+] as const;
 
 export function KeyConcepts({ concepts }: { concepts: string[] }) {
+  const items = concepts ?? [];
+
   return (
-    <Card className="bg-white/5 p-6 ring-1 ring-white/10">
-      <div className="text-sm font-medium text-indigo-100">Key concepts</div>
-      <div className="mt-4 flex flex-wrap gap-2">
-        {(concepts ?? []).length ? (
-          (concepts ?? []).map((c, i) => (
-            <div
+    <GlassCard className="p-6 animate-fade-up">
+      <SectionHeader
+        icon={<Tag className="h-4 w-4" />}
+        title="Key Concepts"
+        description="Core ideas and terminology extracted from the paper."
+      />
+
+      {items.length ? (
+        <div className="flex flex-wrap gap-2">
+          {items.map((c, i) => (
+            <span
               key={`${c}-${i}`}
-              className="rounded-full bg-gradient-to-r from-indigo-500/20 to-purple-500/20 px-4 py-2 text-xs text-slate-100 ring-1 ring-white/10 hover:brightness-110 transition"
+              className={`inline-flex items-center rounded-full px-3.5 py-1.5 text-xs font-medium ring-1 transition-all duration-200 cursor-default select-none hover:scale-105 ${
+                PILL_COLORS[i % PILL_COLORS.length]
+              }`}
             >
               {c}
-            </div>
-          ))
-        ) : (
-          <div className="text-sm text-slate-300">No concepts extracted.</div>
-        )}
-      </div>
-    </Card>
+            </span>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-slate-500">No concepts extracted.</p>
+      )}
+    </GlassCard>
   );
 }
-

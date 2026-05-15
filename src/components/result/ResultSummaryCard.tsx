@@ -1,8 +1,8 @@
 "use client";
 
 import { Badge } from "@/components/ui/shared/Badge";
-import { Card } from "@/components/ui/shared/Card";
-import { FileText, GraduationCap, Layers, Sparkles } from "lucide-react";
+import { GlassCard } from "@/components/ui/shared/GlassCard";
+import { BookOpen, GraduationCap, Layers, Lightbulb, Sparkles } from "lucide-react";
 
 type Summary = {
   title: string;
@@ -13,46 +13,80 @@ type Summary = {
   methodUsed: string;
 };
 
+const difficultyVariant = (d: string) => {
+  const lower = d.toLowerCase();
+  if (lower.includes("beginner") || lower.includes("easy"))   return "green"  as const;
+  if (lower.includes("advanced") || lower.includes("expert")) return "red"    as const;
+  return "amber" as const;
+};
+
 export function ResultSummaryCard({ summary }: { summary: Summary }) {
   return (
-    <Card className="relative overflow-hidden bg-white/5 p-6 ring-1 ring-white/10">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.25),transparent_50%)]" />
+    <GlassCard gradient className="p-6 md:p-8 animate-fade-up">
+      {/* Ambient glow */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(ellipse_at_top_left,rgba(99,102,241,0.12),transparent_60%)]"
+      />
+
       <div className="relative">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <div className="mt-1 flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/30 to-purple-500/30 ring-1 ring-white/10">
-              <FileText className="h-5 w-5 text-indigo-200" />
+        {/* Header row */}
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-start gap-4 flex-1 min-w-0">
+            <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/30 to-purple-500/30 ring-1 ring-white/10">
+              <BookOpen className="h-5 w-5 text-indigo-300" />
             </div>
-            <div>
-              <h2 className="text-xl font-semibold leading-tight">{summary?.title || "Untitled"}</h2>
-              <div className="mt-2 text-xs text-slate-300">{summary?.oneLineSummary}</div>
+            <div className="min-w-0">
+              <h2 className="text-xl font-bold tracking-tight text-white leading-tight">
+                {summary?.title || "Untitled Paper"}
+              </h2>
+              <p className="mt-1.5 text-sm text-slate-400 leading-relaxed">
+                {summary?.oneLineSummary}
+              </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Badge icon={<Layers className="h-3.5 w-3.5" />} label={summary?.category || "Category"} />
-            <Badge icon={<GraduationCap className="h-3.5 w-3.5" />} label={summary?.difficulty || "Difficulty"} />
+          <div className="flex flex-wrap gap-2 shrink-0">
+            {summary?.category && (
+              <Badge
+                label={summary.category}
+                icon={<Layers className="h-3 w-3" />}
+                variant="indigo"
+              />
+            )}
+            {summary?.difficulty && (
+              <Badge
+                label={summary.difficulty}
+                icon={<GraduationCap className="h-3 w-3" />}
+                variant={difficultyVariant(summary.difficulty)}
+              />
+            )}
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 md:grid-cols-2">
-          <div className="rounded-xl bg-white/5 p-4 ring-1 ring-white/10">
-            <div className="flex items-center gap-2 text-sm font-medium text-indigo-100">
-              <Sparkles className="h-4 w-4" />
-              Problem solved
+        {/* Detail cards */}
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl bg-white/[0.04] p-4 ring-1 ring-white/[0.07] hover:bg-white/[0.06] transition-colors duration-200">
+            <div className="flex items-center gap-2 text-xs font-semibold text-indigo-400 mb-2">
+              <Sparkles className="h-3.5 w-3.5" />
+              Problem Solved
             </div>
-            <div className="mt-2 text-sm text-slate-300">{summary?.problemSolved}</div>
+            <p className="text-sm text-slate-300 leading-relaxed">
+              {summary?.problemSolved || "—"}
+            </p>
           </div>
-          <div className="rounded-xl bg-white/5 p-4 ring-1 ring-white/10">
-            <div className="flex items-center gap-2 text-sm font-medium text-indigo-100">
-              <Sparkles className="h-4 w-4" />
-              Method used
+
+          <div className="rounded-xl bg-white/[0.04] p-4 ring-1 ring-white/[0.07] hover:bg-white/[0.06] transition-colors duration-200">
+            <div className="flex items-center gap-2 text-xs font-semibold text-purple-400 mb-2">
+              <Lightbulb className="h-3.5 w-3.5" />
+              Method Used
             </div>
-            <div className="mt-2 text-sm text-slate-300">{summary?.methodUsed}</div>
+            <p className="text-sm text-slate-300 leading-relaxed">
+              {summary?.methodUsed || "—"}
+            </p>
           </div>
         </div>
       </div>
-    </Card>
+    </GlassCard>
   );
 }
-

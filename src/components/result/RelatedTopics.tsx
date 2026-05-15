@@ -1,33 +1,42 @@
 "use client";
 
-import { Card } from "@/components/ui/shared/Card";
+import { GlassCard } from "@/components/ui/shared/GlassCard";
+import { SectionHeader } from "@/components/ui/shared/SectionHeader";
+import { ArrowUpRight, Compass } from "lucide-react";
 
 function buildSearchUrl(q: string) {
-  return `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+  return `https://www.google.com/search?q=${encodeURIComponent(q + " research paper")}`;
 }
 
 export function RelatedTopics({ relatedTopics }: { relatedTopics: string[] }) {
+  const topics = relatedTopics ?? [];
+
   return (
-    <Card className="bg-white/5 p-6 ring-1 ring-white/10">
-      <div className="text-sm font-medium text-indigo-100">Related topics</div>
-      <div className="mt-4 flex flex-wrap gap-2">
-        {(relatedTopics ?? []).length ? (
-          (relatedTopics ?? []).map((t, i) => (
+    <GlassCard className="p-6 animate-fade-up">
+      <SectionHeader
+        icon={<Compass className="h-4 w-4" />}
+        title="Related Topics"
+        description="Explore connected research areas and concepts."
+      />
+
+      {topics.length ? (
+        <div className="flex flex-wrap gap-2">
+          {topics.map((t, i) => (
             <a
               key={`${t}-${i}`}
               href={buildSearchUrl(t)}
               target="_blank"
               rel="noreferrer"
-              className="rounded-full bg-gradient-to-r from-indigo-500/20 to-purple-500/20 px-4 py-2 text-xs text-slate-100 ring-1 ring-white/10 hover:brightness-110 transition"
+              className="group inline-flex items-center gap-1.5 rounded-full bg-white/[0.05] px-3.5 py-1.5 text-xs font-medium text-slate-300 ring-1 ring-white/[0.08] transition-all duration-200 hover:bg-indigo-500/15 hover:text-indigo-300 hover:ring-indigo-500/25 hover:scale-105"
             >
               {t}
+              <ArrowUpRight className="h-3 w-3 opacity-0 -translate-y-0.5 translate-x-0.5 transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0 group-hover:translate-x-0" />
             </a>
-          ))
-        ) : (
-          <div className="text-sm text-slate-300">No related topics found.</div>
-        )}
-      </div>
-    </Card>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-slate-500">No related topics found.</p>
+      )}
+    </GlassCard>
   );
 }
-

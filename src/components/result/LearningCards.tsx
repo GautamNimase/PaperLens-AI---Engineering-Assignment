@@ -1,15 +1,30 @@
 "use client";
 
-import { Card } from "@/components/ui/shared/Card";
-import { BookOpen, HelpCircle, Lightbulb, Sparkles, Target } from "lucide-react";
+import { GlassCard } from "@/components/ui/shared/GlassCard";
+import { SectionHeader } from "@/components/ui/shared/SectionHeader";
+import {
+    BookOpen,
+    HelpCircle,
+    Lightbulb,
+    Sparkles,
+    Target,
+} from "lucide-react";
 
-const QUESTIONS = [
-  { icon: Target, q: "What problem does this solve?" },
-  { icon: BookOpen, q: "What is the main idea?" },
-  { icon: Lightbulb, q: "Why does it work?" },
-  { icon: HelpCircle, q: "Applications?" },
-  { icon: Sparkles, q: "What to learn next?" },
-];
+const FALLBACK_QUESTIONS = [
+  { icon: Target,      q: "What problem does this paper solve?" },
+  { icon: BookOpen,    q: "What is the main idea?" },
+  { icon: Lightbulb,   q: "Why does the approach work?" },
+  { icon: HelpCircle,  q: "What are the real-world applications?" },
+  { icon: Sparkles,    q: "What should you study next?" },
+] as const;
+
+const CARD_ACCENTS = [
+  "from-indigo-500/10 to-purple-500/5",
+  "from-purple-500/10 to-fuchsia-500/5",
+  "from-sky-500/10 to-indigo-500/5",
+  "from-violet-500/10 to-purple-500/5",
+  "from-fuchsia-500/10 to-pink-500/5",
+] as const;
 
 type Summary = {
   problemSolved?: string;
@@ -25,40 +40,49 @@ export function LearningCards({
   summary: Summary | null | undefined;
   concepts: string[];
 }) {
-  // Use Gemini-provided cards if available; otherwise generate from summary.
-  const cards =
-    summary?.learningCards?.length ? summary.learningCards : ([] as Array<{ question: string; answer: string }>);
+  const aiCards = summary?.learningCards ?? [];
 
-
-  const derived = cards.length
-    ? cards
-    : QUESTIONS.map((x, i) => ({
+  const derived = aiCards.length
+    ? aiCards
+    : FALLBACK_QUESTIONS.map((x, i) => ({
         question: x.q,
         answer:
-          i === 0
-            ? summary?.problemSolved || "Explained in the paper summary."
-            : i === 1
-              ? summary?.oneLineSummary || "Main idea summarized."
-              : i === 2
-                ? summary?.methodUsed || "Method explained."
-                : i === 3
-                  ? `You can apply this to topics related to: ${(concepts ?? []).slice(0, 2).join(", ") || "your domain"}.`
-                  : `Next, study: ${(concepts ?? []).slice(0, 3).join(", ") || "foundational concepts"}.`,
+          i === 0 ? summary?.problemSolved || "Explained in the paper summary."
+          : i === 1 ? summary?.oneLineSummary || "Main idea summarized."
+          : i === 2 ? summary?.methodUsed || "Method explained."
+          : i === 3 ? `Apply to: ${(concepts ?? []).slice(0, 2).join(", ") || "your domain"}.`
+          : `Study next: ${(concepts ?? []).slice(0, 3).join(", ") || "foundational concepts"}.`,
       }));
 
   return (
-    <Card className="bg-white/5 p-6 ring-1 ring-white/10">
-      <div className="text-sm font-medium text-indigo-100">Learning cards</div>
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
-        {(derived ?? []).slice(0, 5).map((c, idx) => (
-          <div key={idx} className="rounded-2xl bg-slate-950/50 p-4 ring-1 ring-white/10">
-            <div className="text-xs text-slate-400">Question</div>
-            <div className="mt-2 text-sm font-medium text-slate-100">{c.question}</div>
-            <div className="mt-3 text-sm text-slate-300">{c.answer}</div>
+    <GlassCard className="p-6 animate-fade-up">
+      <SectionHeader
+        icon={<BookOpen className="h-4 w-4" />}
+        title="Learning Cards"
+        description="Flashcard-style Q&A to reinforce understanding."
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {derived.slice(0, 6).map((c, idx) => (
+          <div
+            key={idx}
+            className={`group rounded-2xl bg-gradient-to-br ${CARD_ACCENTS[idx % CARD_ACCENTS.length]} p-px transition-all duration-200 hover:scale-[1.01]`}
+          >
+            <div className="h-full rounded-2xl bg-[#0d1117] p-4 group-hover:bg-[#111827] transition-colors duration-200">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-600 mb-2">
+                Question
+              </p>
+              <p className="text-sm font-semibold text-slate-100 leading-snug mb-3">
+                {c.question}
+              </p>
+              <div className="h-px bg-white/[0.06] mb-3" />
+              <p className="text-sm text-slate-400 leading-relaxed">
+                {c.answer}
+              </p>
+            </div>
           </div>
         ))}
       </div>
-    </Card>
+    </GlassCard>
   );
 }
-

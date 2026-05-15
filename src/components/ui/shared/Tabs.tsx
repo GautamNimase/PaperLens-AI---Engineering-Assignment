@@ -18,8 +18,10 @@ export function Tabs({
   onValueChange: (v: string) => void;
   children: React.ReactNode;
 }) {
-  const v = value;
-  const ctx = useMemo<TabsCtx>(() => ({ value: v, setValue: onValueChange }), [v, onValueChange]);
+  const ctx = useMemo<TabsCtx>(
+    () => ({ value, setValue: onValueChange }),
+    [value, onValueChange]
+  );
   return <Ctx.Provider value={ctx}>{children}</Ctx.Provider>;
 }
 
@@ -31,7 +33,12 @@ export function TabsList({
   children: React.ReactNode;
 }) {
   return (
-    <div className={"flex rounded-xl p-1 " + (className ?? "")}>{children}</div>
+    <div
+      role="tablist"
+      className={`flex rounded-xl bg-white/5 p-1 ring-1 ring-white/8 ${className ?? ""}`}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -43,17 +50,19 @@ export function TabsTrigger({
   children: React.ReactNode;
 }) {
   const ctx = useContext(Ctx);
-  if (!ctx) throw new Error("TabsTrigger must be used within Tabs");
+  if (!ctx) throw new Error("TabsTrigger must be inside <Tabs>");
 
   const active = ctx.value === value;
 
   return (
     <button
       type="button"
-      className={`flex-1 rounded-lg px-3 py-2 text-xs font-medium transition ${
+      role="tab"
+      aria-selected={active}
+      className={`flex-1 rounded-lg px-3 py-2 text-xs font-medium transition-all duration-200 ease-out ${
         active
-          ? "bg-gradient-to-r from-indigo-500/30 to-purple-500/30 text-slate-100 ring-1 ring-white/15"
-          : "text-slate-300 hover:bg-white/10"
+          ? "bg-gradient-to-r from-indigo-500/25 to-purple-500/25 text-white ring-1 ring-white/12 shadow-sm"
+          : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
       }`}
       onClick={() => ctx.setValue(value)}
     >
@@ -70,9 +79,7 @@ export function TabsContent({
   children: React.ReactNode;
 }) {
   const ctx = useContext(Ctx);
-  if (!ctx) throw new Error("TabsContent must be used within Tabs");
-
+  if (!ctx) throw new Error("TabsContent must be inside <Tabs>");
   if (ctx.value !== value) return null;
-  return <div>{children}</div>;
+  return <div role="tabpanel">{children}</div>;
 }
-
